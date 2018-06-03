@@ -62,8 +62,6 @@ class LogisticRegression(object):
         return np.mean(loss),grad
 
 
-
-
 class SVM(object):
     def __init__(self, input_dim, classes = 10):
         self.params = {}
@@ -99,6 +97,28 @@ class SVM(object):
         grad['W'] = np.dot(index.T, X) / X.shape[0]
 
         return loss, grad
+
+
+class SVM_kernel(object):
+    def __init__(self, input_dim, classes=10):
+        self.params = {}
+        self.dims = input_dim
+        self.classes = classes
+        self.params['W'] = np.random.normal(size=[self.classes, self.dims])
+    def loss(self):
+        pass
+
+
+
+class FCNet(object):
+    def __init__(self, input_dim, classes=10):
+        self.params = {}
+        self.dims = input_dim
+        self.classes = classes
+        self.params['W'] = np.random.normal(size=[self.classes, self.dims])
+
+    def loss(self):
+        pass
 
 
 
