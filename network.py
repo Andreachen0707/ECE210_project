@@ -63,10 +63,11 @@ class LogisticRegression(object):
 
 
 class SVM(object):
-    def __init__(self, input_dim, classes = 10):
+    def __init__(self, input_dim, classes = 10, reg = 0.0):
         self.params = {}
         self.dims = input_dim
         self.classes = classes
+        self.reg = reg
         self.params['W'] = np.random.normal(size=[self.classes, self.dims])
 
     def loss(self, X, y=None):
@@ -87,26 +88,72 @@ class SVM(object):
         max_out[np.arange(X.shape[0]), y] = 0  # remove right results where j equal to yi
 
         loss = np.sum(np.maximum(np.zeros((X.shape[0], self.params['W'].shape[0])), max_out))
-        loss = loss / X.shape[0]
+        loss = loss / X.shape[0] + 0.5*self.reg*np.sum(self.params['W']**2)
 
         index = np.maximum(np.zeros((X.shape[0], self.params['W'].shape[0])), max_out)  # compare with 0
         index[index > 0] = 1  # set greater than 0 as 1
         max_index = np.sum(index, axis=1)  # counts of incorrect results
         index[np.arange(X.shape[0]), y] = -max_index[np.arange(X.shape[0])]  # svm expression
 
-        grad['W'] = np.dot(index.T, X) / X.shape[0]
+        grad['W'] = np.dot(index.T, X) / X.shape[0] + self.reg* self.params['W']
 
         return loss, grad
 
 
 class SVM_kernel(object):
-    def __init__(self, input_dim, classes=10):
+    def __init__(self, input_dim, classes = 10, reg = 0.1):
         self.params = {}
         self.dims = input_dim
         self.classes = classes
-        self.params['W'] = np.random.normal(size=[self.classes, self.dims])
-    def loss(self):
-        pass
+        self.reg = reg
+        self.params['W'] = np.random.normal(size=[self.classes, 100])
+
+    def rbf(self, x, y):
+        gamma = 0.05
+        return np.exp(-gamma * np.linalg.norm(x-y) ** 2)
+
+    def loss(self, X, y=None):
+        """
+        A vectorized implementation of loss_and_grad. It shares the same
+    	inputs and ouptuts as loss_and_grad.
+        """
+        loss = 0.0
+        X_shape = X.shape[0]
+
+        K = np.zeros((X_shape,X_shape))
+
+        # print(X[0,:].shape)
+
+        for i in range(X_shape):
+            for j in range(X_shape):
+                X_1 = X[i,:].reshape(-1,1)
+                X_2 = X[j, :].reshape(-1, 1)
+                K[i, j] = self.rbf(X_1,X_2)
+        # print(K.shape)
+
+        grad = {}
+        grad['W'] = np.zeros(self.params['W'].shape)  # initialize the gradient as zero
+        if y is None:
+            return np.dot(K, self.params['W'].T)
+
+        a_j = np.dot(K, self.params['W'].T)  # score
+        a_yj = a_j[np.arange(K.shape[0]) , y]  # true values
+
+        max_out = 1 + a_j - a_yj.reshape(K.shape[0], 1)  # svm expression
+        max_out[np.arange(K.shape[0]), y] = 0  # remove right results where j equal to yi
+
+        loss = np.sum(np.maximum(np.zeros((K.shape[0], self.params['W'].shape[0])), max_out))
+        loss = loss / K.shape[0] # + 0.5 * self.reg * np.dot(np.dot(self.params['W'], K),self.params['W'].T)
+
+        index = np.maximum(np.zeros((K.shape[0], self.params['W'].shape[0])), max_out)  # compare with 0
+        index[index > 0] = 1  # set greater than 0 as 1
+        max_index = np.sum(index, axis=1)  # counts of incorrect results
+        index[np.arange(K.shape[0]), y] = -max_index[np.arange(K.shape[0])]  # svm expression
+
+        grad['W'] = np.dot(index.T, K) / K.shape[0] #+ self.reg * np.dot(K, self.params['W'].T ).T
+
+        return loss, grad
+
 
 
 

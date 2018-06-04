@@ -51,13 +51,14 @@ def main():
     classes = 10
 
 
-    lrs = [2e-4]
+    lrs = [2e-5]
 
 
     for lr in lrs:
         # model = network.LogisticRegression(input_dim = X_train.shape[1],reg= 0.5, reg_type= 'l2')
-        model = network.SVM(input_dim=X_train.shape[1])
-        solver = Solver(model,data,num_epochs=40,batch_size=200,update_rule='sgd',
+        model = network.SVM_kernel(input_dim=X_train.shape[1])
+        # model = network.SVM(input_dim=X_train.shape[1])
+        solver = Solver(model,data,num_epochs=10,batch_size=100,update_rule='sgd',
                         optim_config={'learning_rate':lr},
                         verbose=True,
                         print_every= 20
