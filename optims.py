@@ -29,3 +29,25 @@ def sgd_momentum(w, dw, config=None):
     config['velocity'] = v
 
     return next_w, config
+
+
+def adam(w, dw, config=None):
+    if config is None: config = {}
+    config.setdefault('learning_rate', 1e-3)
+    config.setdefault('beta1', 0.9)
+    config.setdefault('beta2', 0.999)
+    config.setdefault('epsilon', 1e-8)
+    config.setdefault('v', np.zeros_like(w))
+    config.setdefault('a', np.zeros_like(w))
+    config.setdefault('t', 0)
+
+    next_w = w
+    config['t'] += 1
+    config['v'] = config['beta1'] * config['v'] + (1 - config['beta1']) * dw
+    config['a'] = config['beta2'] * config['a'] + (1 - config['beta2']) * dw ** 2
+
+    m_hat = config['v'] / (1 - config['beta1'] ** config['t'])
+    v_hat = config['a'] / (1 - config['beta2'] ** config['t'])
+    next_w = next_w - config['learning_rate'] * m_hat / (np.sqrt(v_hat) + config['epsilon'])
+
+    return next_w, config
